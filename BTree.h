@@ -21,6 +21,12 @@ class BTree{
             else 
                 root->traverse(out);
         }
+        const Node* search(T key) const {
+            if(!root)
+                throw std::logic_error("Tree is empty");
+            else
+                return root->search(key);
+        }
 };
 
 template <class T>
@@ -53,6 +59,7 @@ class BTree<T>::Node{
             return n < 2*t - 1 && n >= 0;
         }
         void traverse(std::ostream& out) const ;
+        const Node* search(T key) const ;
     private:
         T *keys;
         Node **children;
@@ -132,6 +139,23 @@ void BTree<T>::Node::traverse(std::ostream& out) const {
     }
     if(!leaf)
         children[n]->traverse(out);
+}
+
+template <typename T>
+const typename BTree<T>::Node* BTree<T>::Node::search(T key) const {
+    if(leaf){
+        if(std::binary_search(keys, keys + n, key))
+            return this;
+        else 
+            return NULL;
+    }
+    else {
+        int idx = std::lower_bound(keys, keys + n, key) - keys;
+        if(idx < n && keys[idx] == key)
+            return this;
+        else 
+            return children[idx]->search(key);
+    }
 }
 
 #endif
