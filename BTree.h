@@ -4,16 +4,17 @@
 #include <stdexcept>
 #include <algorithm>
 #include "helpers.h"
+#include "handle.h"
 
 template <class T>
 class BTree{
     private:
         class Node;
         int t;
-        Node* root;
+        Handle<Node> root;
     public:
-        BTree(int _t): t{_t}, root{NULL}{}
-        BTree(Node* tree): root{tree}, t{tree->t}{}
+        BTree(int _t): t{_t}, root{}{}
+        BTree(Handle<Node> tree): root{tree}, t{tree->t}{}
         void insert(T key);
         void traverse(std::ostream& out) const {
             if(!root)
@@ -35,11 +36,11 @@ class BTree<T>::Node{
     public:
         Node(int _t, bool _leaf): t{_t}, leaf{_leaf}, n{0}{
             keys = new T[2*t - 1];
-            children = new Node*[2*t];
+            children = new Handle<Node>[2*t];
         }
-        Node(Node* from, int b, int e): t{from->t}, leaf{from->leaf}, n{e-b}{
+        Node(Handle<Node> from, int b, int e): t{from->t}, leaf{from->leaf}, n{e-b}{
             keys = new T[2*t - 1];
-            children = new Node*[2*t];
+            children = new Handle<Node>[2*t];
             std::copy(from->keys + b, from->keys + e, keys);
             std::copy(from->children + b, from->children + e + 1, children);
         }
@@ -62,7 +63,7 @@ class BTree<T>::Node{
         const Node* search(T key) const ;
     private:
         T *keys;
-        Node **children;
+        Handle<Node> *children;
         int t;
         int n;
         bool leaf;
@@ -75,11 +76,10 @@ void BTree<T>::Node::splitChild(int idx) {
     if(n == 2*t - 1)
         throw std::logic_error("Node is full can't add key to it");
     if(!leaf && children[idx]->n == 2*t - 1){
-        Node* child = children[idx];
+        Handle<Node>& child = children[idx];
         insertInArr(child->key(child->n / 2), keys, n, idx);
-        Node* l = new Node(child, 0, child->n / 2);
-        Node* r = new Node(child, child->n / 2 + 1, child->n);
-        delete child;
+        Handle<Node> l = new Node(child, 0, child->n / 2);
+        Handle<Node> r = new Node(child, child->n / 2 + 1, child->n);
         children[idx] = l;
         insertInArr(r, children, n + 1, idx + 1);
         n++;
@@ -97,7 +97,7 @@ void BTree<T>::insert(T key){
         return;
     }
     if(!*root){
-        Node* _root = new Node(t, false);
+        Handle<Node> _root = new Node(t, false);
         _root->children[0] = root;
         _root->splitChild(0);
         root = _root;
@@ -114,7 +114,7 @@ void BTree<T>::insert(T key){
         int idx = std::lower_bound(root->keys, root->keys + root->n, key) - root->keys;
         if(idx < root->n && root->key(idx) == key)
             throw std::logic_error("key already exists!");
-        Node* child = root->children[idx];
+        Handle<Node> child = root->children[idx];
         if(!*child){
             root->splitChild(idx);
             if(key < root->key(idx))
