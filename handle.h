@@ -23,6 +23,8 @@ class Handle{
         }
         Handle& operator =(const Handle& rhs){
             if(this != &rhs){
+                if(rhs.ref)
+                    ++*rhs.ref;
                 if(p && p != rhs.p)
                     --*ref;
                 if(ref && *ref == 0){
@@ -31,8 +33,6 @@ class Handle{
                 }
                 p = rhs.p;
                 ref = rhs.ref;
-                if(ref)
-                    ++*ref;
             }
             return *this;
         }
