@@ -23,16 +23,21 @@ class Handle{
         }
         Handle& operator =(const Handle& rhs){
             if(this != &rhs){
-                if(rhs.ref)
-                    ++*rhs.ref;
-                if(p && p != rhs.p)
-                    --*ref;
-                if(ref && *ref == 0){
-                    delete p;
-                    delete ref;
-                }
+                // save object pointer and reference count pointer
+                T* _p = p;
+                int* _ref = ref;
                 p = rhs.p;
                 ref = rhs.ref;
+                if(ref)
+                    ++*ref;
+                if(_p && p != _p){ // if it was pointing to an object
+                    --*_ref;
+                    // if that object has no references now, delete it
+                    if(*_ref == 0){
+                        delete _p;
+                        delete _ref;
+                    }
+                }
             }
             return *this;
         }

@@ -9,4 +9,11 @@ void insertInArr(T k, T* arr, int n, int idx){
     arr[idx] = k;
 }
 
+template<typename T>
+void deleteFromArr(T* arr, int& n, int idx){
+    for(int i = idx; i < n - 1; i++)
+        arr[i] = arr[i + 1];
+    n--;
+}
+
 #endif
